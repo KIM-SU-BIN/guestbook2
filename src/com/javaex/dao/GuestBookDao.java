@@ -11,194 +11,196 @@ import java.util.List;
 import com.javaex.vo.GuestBookVo;
 
 public class GuestBookDao {
+	
+	// 0. import java.sql.*;
+	private Connection conn = null;
+	private PreparedStatement pstmt = null;
+	private ResultSet rs = null;
 
-		// 0. import java.sql.*;
-		private Connection conn = null;
-		private PreparedStatement pstmt = null;
-		private ResultSet rs = null;
+	private String driver = "oracle.jdbc.driver.OracleDriver";
+	private String url = "jdbc:oracle:thin:@localhost:1521:xe";
+	private String id = "webdb";
+	private String pw = "webdb";
+	
+	private void getConnection() {
+		try {
+			// 1. JDBC 드라이버 (Oracle) 로딩
+			Class.forName(driver);
 
-		private String driver = "oracle.jdbc.driver.OracleDriver";
-		private String url = "jdbc:oracle:thin:@localhost:1521:xe";
-		private String id = "webdb";
-		private String pw = "webdb";
+			// 2. Connection 얻어오기
+			conn = DriverManager.getConnection(url, id, pw);
+			// System.out.println("접속성공");
 
-		private void getConnection() {
-			try {
-				// 1. JDBC 드라이버 (Oracle) 로딩
-				Class.forName(driver);
-
-				// 2. Connection 얻어오기
-				conn = DriverManager.getConnection(url, id, pw);
-				// System.out.println("접속성공");
-
-			} catch (ClassNotFoundException e) {
-				System.out.println("error: 드라이버 로딩 실패 - " + e);
-			} catch (SQLException e) {
-				System.out.println("error:" + e);
+		} catch (ClassNotFoundException e) {
+			System.out.println("error: 드라이버 로딩 실패 - " + e);
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
+		}
+	}
+	
+	private void close() {
+		// 5. 자원정리
+		try {
+			if (rs != null) {
+				rs.close();
 			}
+			if (pstmt != null) {
+				pstmt.close();
+			}
+			if (conn != null) {
+				conn.close();
+			}
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
+		}
+	}
+	
+	
+	//Guestbook 출력
+	public List<GuestBookVo> getGuestList() {
+		
+		List<GuestBookVo> guestList = new ArrayList<GuestBookVo>();
+		
+		getConnection();
+		
+		try {
+
+			// 3. SQL문 준비 / 바인딩 / 실행 --> 완성된 sql문을 가져와서 작성할것
+			String query = "";
+			query += " select no ";
+			query += "         ,name ";
+			query += "         ,password ";
+			query += "         ,content ";
+			query += "         ,to_char(reg_date, 'YYYY-MM-DD HH:MI:SS') \"reg_date\" ";
+			query += " from guestbook ";
+
+			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
+
+			rs = pstmt.executeQuery();
+
+			// 4.결과처리
+			while (rs.next()) {
+				int no = rs.getInt("no");
+				String name = rs.getString("name");
+				String password = rs.getString("password");
+				String content = rs.getString("content");
+				String reg_date = rs.getString("reg_date");
+
+				guestList.add(new GuestBookVo(no, name, password, content, reg_date));
+			}
+
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
 		}
 
-		private void close() {
-			// 5. 자원정리
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-				if (pstmt != null) {
-					pstmt.close();
-				}
-				if (conn != null) {
-					conn.close();
-				}
-			} catch (SQLException e) {
-				System.out.println("error:" + e);
-			}
-		}
+		close();
+		return guestList;
+	}
+	
+	
+	//Guest 추가
+	public int guestInsert(GuestBookVo guestVo) {
+		int count = 0;
+		getConnection();
 
-		// 사람 추가
-		public int GuestBookInsert(GuestBookVo guestBookVo) {
-			int count = 0;
-			getConnection();
+		try {
 
-			try {
+			// 3. SQL문 준비 / 바인딩 / 실행
+			String query = ""; // 쿼리문 문자열만들기, ? 주의
+			query += " insert into guestbook ";
+			query += " values (seq_guestbook_no.nextval, ?, ?, ?, "
+					+"to_date(?,'YYYY-MM-DD HH:MI:SS')) ";
 
-				// 3. SQL문 준비 / 바인딩 / 실행
-				String query = ""; // 쿼리문 문자열만들기, ? 주의
-				query += " INSERT INTO person ";
-				query += " VALUES (seq_person_id.nextval, ?, ?, ?) ";
-				// System.out.println(query);
+			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
 
-				pstmt = conn.prepareStatement(query); // 쿼리로 만들기
-
-				pstmt.setString(1, guestBookVo.getName()); 
-				pstmt.setString(2, guestBookVo.getPassword()); 
+			pstmt.setString(1, guestVo.getName());
+			pstmt.setString(2, guestVo.getPassword());
+			pstmt.setString(3, guestVo.getBlank());
+			pstmt.setString(4, guestVo.getDate());
 			
 
-				count = pstmt.executeUpdate(); // 쿼리문 실행
+			count = pstmt.executeUpdate(); // 쿼리문 실행
 
-				// 4.결과처리
-				// System.out.println("[" + count + "건 추가되었습니다.]");
+			// 4.결과처리
+			System.out.println("[" + count + "건 추가되었습니다.]");
 
-			} catch (SQLException e) {
-				System.out.println("error:" + e);
-			}
-			close();
-			return count;
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
 		}
+		close();
+		return count;
+	}
+	
+	
+	
+	//Guest 찾기
+	public GuestBookVo getGuest(int delNo) {
+		GuestBookVo guest = null;
+		getConnection();
+		
+		try {
 
-		// 사람 리스트(검색안할때)
-		public List<GuestBookVo> getGuestbook() {
-			return getGuestbookList("");
-		}
+			// 3. SQL문 준비 / 바인딩 / 실행 --> 완성된 sql문을 가져와서 작성할것
+			String query = "";
+			query += " select no ";
+			query += "         ,name ";
+			query += "         ,password ";
+			query += "         ,content ";
+			query += "         ,to_char(reg_date, 'YYYY-MM-DD HH:MI:SS') \"reg_date\" ";
+			query += " from guestbook ";
+			query += " where no = ? ";
 
-		// 사람 리스트(검색할때)
-		public List<GuestBookVo> getGuestbookList(String keword) {
-			List<GuestBookVo> guestbookList = new ArrayList<GuestBookVo>();
+			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
+			pstmt.setInt(1, delNo);
 
-			getConnection();
+			rs = pstmt.executeQuery();
 
-			try {
+			// 4.결과처리
+			while (rs.next()) {
+				int no = rs.getInt("no");
+				String name = rs.getString("name");
+				String password = rs.getString("password");
+				String content = rs.getString("content");
+				String reg_date = rs.getString("reg_date");
 
-				// 3. SQL문 준비 / 바인딩 / 실행 --> 완성된 sql문을 가져와서 작성할것
-				String query = "";
-				query += " select  person_id, ";
-				query += "         name, ";
-				query += "         password ";
-				query += " from person";
-
-				if (keword != "" || keword == null) {
-					query += " where name like ? ";
-					query += " or hp like  ? ";
-					pstmt = conn.prepareStatement(query); // 쿼리로 만들기
-
-					pstmt.setString(1, '%' + keword + '%'); // ?(물음표) 중 1번째, 순서중요
-					pstmt.setString(2, '%' + keword + '%'); // ?(물음표) 중 2번째, 순서중요
-
-				} else {
-					pstmt = conn.prepareStatement(query); // 쿼리로 만들기
-				}
-
-				rs = pstmt.executeQuery();
-
-				// 4.결과처리
-				while (rs.next()) {
-					int personId = rs.getInt("person_id");
-					String name = rs.getString("name");
-					String password = rs.getString("password");
-					
-					GuestBookVo guestbookVo = new GuestBookVo(personId, name, password);
-					guestbookList.add(guestbookVo);
-				}
-
-			} catch (SQLException e) {
-				System.out.println("error:" + e);
+				guest = new GuestBookVo(no, name, password, content, reg_date);
 			}
 
-			close();
-
-			return guestbookList;
-
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
 		}
 
-		// 수정수정수정수정수정수정수정수정수정수정수정
-		public int guestbookUpdate(GuestBookVo guestBookVo) {
-			int count = 0;
-			getConnection();
+		close();
+		return guest;
+	}
+	
+	
+	
+	//Guest 삭제
+	public void guestDelete(int delNo) {
+		getConnection();
+		
+		try {
 
-			try {
+			// 3. SQL문 준비 / 바인딩 / 실행 --> 완성된 sql문을 가져와서 작성할것
+			String query = "";
+			query += " delete guestbook ";
+			query += " where no = ? ";
 
-				// 3. SQL문 준비 / 바인딩 / 실행
-				String query = ""; // 쿼리문 문자열만들기, ? 주의
-				query += " update person ";
-				query += " set name = ? , ";
-				query += "     password = ? , ";
-				query += " where person_id = ? ";
+			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
+			pstmt.setInt(1, delNo);
 
-				pstmt = conn.prepareStatement(query); // 쿼리로 만들기
+			int count = pstmt.executeUpdate();
 
-				pstmt.setString(1, guestBookVo.getName()); // ?(물음표) 중 1번째, 순서중요
-				pstmt.setString(2, guestBookVo.getPassword()); // ?(물음표) 중 2번째, 순서중요
-				pstmt.setInt(3, guestBookVo.getPersonId()); // ?(물음표) 중 3번째, 순서중요
+			// 4.결과처리
+			System.out.println("["+count+"건 삭제 되었습니다.]");
 
-				count = pstmt.executeUpdate(); // 쿼리문 실행
-
-				// 4.결과처리
-				// System.out.println(count + "건 수정되었습니다.");
-
-			} catch (SQLException e) {
-				System.out.println("error:" + e);
-			}
-
-			close();
-			return count;
+		} catch (SQLException e) {
+			System.out.println("error:" + e);
 		}
 
-		// 삭제삭제삭제삭제삭제삭제삭제삭제삭제삭제삭제삭제삭제
-		public int guestbookDelete(int personId) {
-			int count = 0;
-			getConnection();
-
-			try {
-				// 3. SQL문 준비 / 바인딩 / 실행
-				String query = ""; // 쿼리문 문자열만들기, ? 주의
-				query += " delete from person ";
-				query += " where person_id = ? ";
-				pstmt = conn.prepareStatement(query); // 쿼리로 만들기
-
-				pstmt.setInt(1, personId);// ?(물음표) 중 1번째, 순서중요
-
-				count = pstmt.executeUpdate(); // 쿼리문 실행
-
-				// 4.결과처리
-				// System.out.println(count + "건 삭제되었습니다.");
-
-			} catch (SQLException e) {
-				System.out.println("error:" + e);
-			}
-
-			close();
-			return count;
-		}
+		close();
+	}
 
 
 	}
