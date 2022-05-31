@@ -25,7 +25,8 @@
 		<table border="1">
 			<tr>
 				<td>이름</td>
-				<td>
+				<td> 
+				//값이 없으면 안 써도 됨!
 					<input type="text" name="name" value="">
 				</td>
 				<td>비밀번호</td>
