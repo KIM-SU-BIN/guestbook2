@@ -8,14 +8,12 @@
    	String blank = request.getParameter("blank");
    	String date = request.getParameter("reg_date");
    	
-   //guestbookDao 객체 만들기
-	//GuestBookVo guestbookVo = new GuestBookVo(name, password, blank, date);
-	guestDao.guestInsert(new GuestBookVo(name, password, blank, date));
-	//이해 안가는 부분!
-	
 	//phoneDao 객체 만들기
 	GuestBookDao guestbookDao = new GuestBookDao();
-	
+   	guestbookDao.guestInsert(new GuestBookVo(name, password, blank, date));
+ 	 //이해 안가는 부분!
+ 	 
+ 	 
 	//phoneDao의 persinInsert()를 이용해서 저장하기
 	response.sendRedirect("./addList.jsp");
 %>
