@@ -1,95 +1,74 @@
 package com.javaex.vo;
 
 public class GuestBookVo {
-	
-	
-	//일반
+
+	//필드
 	private int no;
 	private String name;
 	private String password;
-	private String blank;
+	private String content;
 	private String date;
+	
+	
 	
 	//생성자
 	public GuestBookVo() {
-		
 	}
-	
-	
-	public GuestBookVo(int no, String name, String password, String blank, String date) {
+	public GuestBookVo(String name, String password, String content, String date) {
+		this.name = name;
+		this.password = password;
+		this.content = content;
+		this.date = date;
+	}
+	public GuestBookVo(int no, String name, String password, String content, String date) {
 		this.no = no;
 		this.name = name;
 		this.password = password;
-		this.blank = blank;
+		this.content = content;
 		this.date = date;
 	}
 	
-	
-	public GuestBookVo(String name, String password, String blank, String date) {
-		super();
-		this.name = name;
-		this.password = password;
-		this.blank = blank;
-		this.date = date;
-	}
-
-
 	
 	//메소드 gs
-	
 	public int getNo() {
 		return no;
 	}
-	
 	public void setNo(int no) {
 		this.no = no;
 	}
-	
-	
 	public String getName() {
 		return name;
 	}
-
-
 	public void setName(String name) {
 		this.name = name;
 	}
-
-
 	public String getPassword() {
 		return password;
 	}
-
-
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
-
-	public String getBlank() {
-		return blank;
+	public String getContent() {
+		return content;
 	}
-
-
-	public void setBlank(String blank) {
-		this.blank = blank;
+	public void setContent(String content) {
+		this.content = content;
 	}
-
-
 	public String getDate() {
 		return date;
 	}
-
-
 	public void setDate(String date) {
 		this.date = date;
 	}
-
+	
 	
 	//메소드 일반
 	@Override
 	public String toString() {
-		return "GuestBookVo [no=\" + no + name=" + name + ", password=" + password + ", blank=" + blank + ", date=" + date + "]";
+		return "guestVo [no=" + no + ", name=" + name + ", password=" + password + ", content=" + content + ", date="
+				+ date + "]";
 	}
+	
+	
 	
 }

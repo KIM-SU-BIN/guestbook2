@@ -11,7 +11,7 @@ import java.util.List;
 import com.javaex.vo.GuestBookVo;
 
 public class GuestBookDao {
-	
+
 	// 0. import java.sql.*;
 	private Connection conn = null;
 	private PreparedStatement pstmt = null;
@@ -115,7 +115,7 @@ public class GuestBookDao {
 
 			pstmt.setString(1, guestVo.getName());
 			pstmt.setString(2, guestVo.getPassword());
-			pstmt.setString(3, guestVo.getBlank());
+			pstmt.setString(3, guestVo.getContent());
 			pstmt.setString(4, guestVo.getDate());
 			
 
@@ -201,6 +201,4 @@ public class GuestBookDao {
 
 		close();
 	}
-
-
-	}
+}
