@@ -21,7 +21,7 @@ public class GuestBookDao {
 	private String url = "jdbc:oracle:thin:@localhost:1521:xe";
 	private String id = "webdb";
 	private String pw = "webdb";
-	
+
 	private void getConnection() {
 		try {
 			// 1. JDBC 드라이버 (Oracle) 로딩
@@ -37,7 +37,7 @@ public class GuestBookDao {
 			System.out.println("error:" + e);
 		}
 	}
-	
+
 	private void close() {
 		// 5. 자원정리
 		try {
@@ -54,18 +54,17 @@ public class GuestBookDao {
 			System.out.println("error:" + e);
 		}
 	}
-	
-	
-	//Guestbook 출력
+
+	// Guestbook 출력
 	public List<GuestBookVo> getGuestList() {
-		
+
 		List<GuestBookVo> guestList = new ArrayList<GuestBookVo>();
-		
-		getConnection();
-		
+
 		try {
+			getConnection();
 
 			// 3. SQL문 준비 / 바인딩 / 실행 --> 완성된 sql문을 가져와서 작성할것
+			// SQL문 준비
 			String query = "";
 			query += " select no ";
 			query += "         ,name ";
@@ -75,7 +74,7 @@ public class GuestBookDao {
 			query += " from guestbook ";
 
 			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
-
+			System.out.println(query);
 			rs = pstmt.executeQuery();
 
 			// 4.결과처리
@@ -87,6 +86,7 @@ public class GuestBookDao {
 				String reg_date = rs.getString("reg_date");
 
 				guestList.add(new GuestBookVo(no, name, password, content, reg_date));
+				// list.add(vo);
 			}
 
 		} catch (SQLException e) {
@@ -96,48 +96,46 @@ public class GuestBookDao {
 		close();
 		return guestList;
 	}
-	
-	
-	//Guest 추가
-	public int guestInsert(GuestBookVo guestVo) {
+
+	// Guest 추가
+	public int insert(GuestBookVo vo) {
 		int count = 0;
-		getConnection();
+		this.getConnection();
 
 		try {
 
 			// 3. SQL문 준비 / 바인딩 / 실행
-			String query = ""; // 쿼리문 문자열만들기, ? 주의
-			query += " insert into guestbook ";
-			query += " values (seq_guestbook_no.nextval, ?, ?, ?, "
-					+"to_date(?,'YYYY-MM-DD HH:MI:SS')) ";
+			String query = "";
+			query += " INSERT INTO guestbook ";
+			query += " values(SEQ_GUESTBOOK_no.nextval, ?, ?, ?, sysdate) ";
 
-			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
+			pstmt = conn.prepareStatement(query);
 
-			pstmt.setString(1, guestVo.getName());
-			pstmt.setString(2, guestVo.getPassword());
-			pstmt.setString(3, guestVo.getContent());
-			pstmt.setString(4, guestVo.getDate());
-			
+			pstmt.setString(1, vo.getName());
+			pstmt.setString(2, vo.getPassword());
+			pstmt.setString(3, vo.getContent());
 
-			count = pstmt.executeUpdate(); // 쿼리문 실행
+			count = pstmt.executeUpdate();
 
 			// 4.결과처리
-			System.out.println("[" + count + "건 추가되었습니다.]");
+			System.out.println(count + "건 등록");
 
 		} catch (SQLException e) {
 			System.out.println("error:" + e);
 		}
-		close();
+
+		this.close();
 		return count;
 	}
-	
-	
-	
-	//Guest 찾기
-	public GuestBookVo getGuest(int delNo) {
-		GuestBookVo guest = null;
-		getConnection();
-		
+
+	// Guest 찾기
+	public GuestBookVo getGuest(int no) {
+
+		GuestBookVo guestBookVo = null;
+		this.getConnection();
+
+		List<GuestBookVo> list = new ArrayList<GuestBookVo>();
+
 		try {
 
 			// 3. SQL문 준비 / 바인딩 / 실행 --> 완성된 sql문을 가져와서 작성할것
@@ -151,19 +149,21 @@ public class GuestBookDao {
 			query += " where no = ? ";
 
 			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
-			pstmt.setInt(1, delNo);
+			pstmt.setInt(1, no);
 
+			rs = pstmt.executeQuery();
+			System.out.println(query);
 			rs = pstmt.executeQuery();
 
 			// 4.결과처리
 			while (rs.next()) {
-				int no = rs.getInt("no");
+				no = rs.getInt("no");
 				String name = rs.getString("name");
 				String password = rs.getString("password");
 				String content = rs.getString("content");
 				String reg_date = rs.getString("reg_date");
 
-				guest = new GuestBookVo(no, name, password, content, reg_date);
+				guestBookVo = new GuestBookVo(no, name, password, content, reg_date);
 			}
 
 		} catch (SQLException e) {
@@ -171,15 +171,15 @@ public class GuestBookDao {
 		}
 
 		close();
-		return guest;
+
+		return guestBookVo;
 	}
-	
-	
-	
-	//Guest 삭제
-	public void guestDelete(int delNo) {
+
+	// Guest 삭제
+	public int guestDelete(GuestBookVo vo) {
 		getConnection();
-		
+		int count = 0;
+
 		try {
 
 			// 3. SQL문 준비 / 바인딩 / 실행 --> 완성된 sql문을 가져와서 작성할것
@@ -188,17 +188,20 @@ public class GuestBookDao {
 			query += " where no = ? ";
 
 			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
-			pstmt.setInt(1, delNo);
+			pstmt.setInt(1, vo.getNo());
+			pstmt.setString(2, vo.getPassword());
 
-			int count = pstmt.executeUpdate();
+			count = pstmt.executeUpdate();
 
 			// 4.결과처리
-			System.out.println("["+count+"건 삭제 되었습니다.]");
+			System.out.println("[" + count + "건 삭제 되었습니다.]");
 
 		} catch (SQLException e) {
 			System.out.println("error:" + e);
 		}
 
 		close();
+
+		return count;
 	}
 }
