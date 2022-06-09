@@ -186,6 +186,7 @@ public class GuestBookDao {
 			String query = "";
 			query += " delete guestbook ";
 			query += " where no = ? ";
+			query += " and password = ? ";
 
 			pstmt = conn.prepareStatement(query); // 쿼리로 만들기
 			pstmt.setInt(1, vo.getNo());

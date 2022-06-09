@@ -34,7 +34,7 @@ public class GuestbookController extends HttpServlet {
 		String action = request.getParameter("action");
 		System.out.println(action);
 		
-		if("addlist".equals(action)) { //리스트
+		if("addList".equals(action)) { //리스트
 			//데이터 가져오기
 			GuestBookDao guestBookDao  = new GuestBookDao();
 			List<GuestBookVo> guestList = guestBookDao .getGuestList();
@@ -72,8 +72,6 @@ public class GuestbookController extends HttpServlet {
 	         WebUtil.forward(request, response, "/WEB-INF/deleteForm.jsp");
 		
 		
-		
-		
 		} else if("delete".equals(action)) {
 			
 			//파라미터 가져오기 => addList정보가 담긴 no
@@ -88,12 +86,12 @@ public class GuestbookController extends HttpServlet {
 				
 				 int count = guestBookDao.guestDelete(guestBookVo);
 				 
-				 WebUtil.redirect(request, response, "/guestbook2/gbc?action=addlist");
+				 WebUtil.redirect(request, response, "/guestbook2/gbc?action=addList");
 				 System.out.println(count);
 			
 			} else {
 				//리다이렉트 list
-				WebUtil.redirect(request, response, "/guestbook2/gbc?action=addlist");
+				WebUtil.redirect(request, response, "/guestbook2/gbc?action=addList");
 				
 				System.out.println("비밀번호가 틀렸습니다.");
 			}
