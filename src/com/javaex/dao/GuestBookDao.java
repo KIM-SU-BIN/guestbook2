@@ -99,7 +99,7 @@ public class GuestBookDao {
 
 	// Guest 추가
 	public int insert(GuestBookVo vo) {
-		int count = 0;
+		int count = -1;
 		this.getConnection();
 
 		try {
